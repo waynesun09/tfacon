@@ -1,0 +1,12 @@
+repos:
+  - repo: https://github.com/dnephin/pre-commit-golang
+    rev: v0.5.0
+    hooks:
+      - id: go-fmt
+      - id: go-vet
+      - id: go-lint
+  - repo: https://github.com/zricethezav/gitleaks
+    rev: v8.13.0
+    hooks:
+      - id: gitleaks
+

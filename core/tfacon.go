@@ -14,9 +14,9 @@ import (
 // connectors, any connector to any test management platform
 // should inpement this interface.
 type TFACon interface {
-	GetAllTestInfos() map[string]string
+	GetAllTestInfos(issueType string, pageSize int) map[string]string
 	GetAllTestIds() []string
-	BuildUpdatedList(ids []string, concurrent bool, add_attributes bool, re bool, auto_finalize_defect_type bool, auto_finalization_threshold float32) common.GeneralUpdatedList
+	BuildUpdatedList(ids []string, concurrent bool, addAttributes bool, re bool, autoFinalizeDefectType bool, autoFinalizationThreshold float32) common.GeneralUpdatedList
 	UpdateAll(common.GeneralUpdatedList, bool)
 	String() string
 	InitConnector()
@@ -24,8 +24,9 @@ type TFACon interface {
 	RevertUpdatedList(verbose bool) common.GeneralUpdatedList
 }
 
+// Revert the item issue type to default
 func Revert(viperRevert, viperConfig *viper.Viper) {
-	var con TFACon = GetCon(viperRevert)
+	var con = GetCon(viperRevert)
 
 	runHelper(viperConfig, con.GetAllTestIds(), con, "revert")
 }
@@ -33,16 +34,16 @@ func Revert(viperRevert, viperConfig *viper.Viper) {
 // Run method is the run operation for any type of connector that
 // implements TFACon interface.
 func Run(viperRun, viperConfig *viper.Viper) {
-	var con TFACon = GetCon(viperRun)
+	var con = GetCon(viperRun)
 
 	con.InitConnector()
 	ids := con.GetAllTestIds()
 	retry := viperConfig.GetInt("config.retry_times")
-	original_retry := retry
+	originalRetry := retry
 	for len(ids) != 0 && retry > 0 {
 		runHelper(viperConfig, ids, con, "run")
 		ids = con.GetAllTestIds()
-		fmt.Printf("This is the %d retry\n", original_retry-retry+1)
+		fmt.Printf("This is the %d retry\n", originalRetry-retry+1)
 		retry--
 	}
 	if len(con.GetAllTestIds()) != 0 {
@@ -55,19 +56,19 @@ func runHelper(viperConfig *viper.Viper, ids []string, con TFACon, operation str
 		return
 	}
 
-	var updated_list_of_issues common.GeneralUpdatedList
+	var updatedListOfIssues common.GeneralUpdatedList
 
 	switch operation {
 	case "run":
-		updated_list_of_issues = con.BuildUpdatedList(ids, viperConfig.GetBool("config.concurrency"),
+		updatedListOfIssues = con.BuildUpdatedList(ids, viperConfig.GetBool("config.concurrency"),
 			viperConfig.GetBool("config.add_attributes"), viperConfig.GetBool("config.re"), viperConfig.GetBool("config.auto_finalize_defect_type"), float32(viperConfig.GetFloat64("config.auto_finalization_threshold")))
 	case "revert":
-		updated_list_of_issues = con.RevertUpdatedList(viperConfig.GetBool("config.verbose"))
+		updatedListOfIssues = con.RevertUpdatedList(viperConfig.GetBool("config.verbose"))
 	default:
-		updated_list_of_issues = con.RevertUpdatedList(viperConfig.GetBool("config.verbose"))
+		updatedListOfIssues = con.RevertUpdatedList(viperConfig.GetBool("config.verbose"))
 	}
 	// Doing this because the api can only take 20 items per request
-	con.UpdateAll(updated_list_of_issues, viperConfig.GetBool("config.verbose"))
+	con.UpdateAll(updatedListOfIssues, viperConfig.GetBool("config.verbose"))
 }
 
 // GetInfo method is the get info operation for any type of connector that

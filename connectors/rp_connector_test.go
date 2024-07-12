@@ -22,10 +22,10 @@ func TestRPConnector_updateAttributesForPrediction(t *testing.T) {
 		TFAURL      string
 	}
 	type args struct {
-		id               string
-		prediction       string
-		accurracy_score  string
-		finalized_by_tfa bool
+		id             string
+		prediction     string
+		accurracyScore string
+		finalizedByTfa bool
 	}
 	tests := []struct {
 		name    string
@@ -46,7 +46,7 @@ func TestRPConnector_updateAttributesForPrediction(t *testing.T) {
 				Client:      tt.fields.Client,
 				TFAURL:      tt.fields.TFAURL,
 			}
-			if err := c.updateAttributesForPrediction(tt.args.id, tt.args.prediction, tt.args.accurracy_score, tt.args.finalized_by_tfa); (err != nil) != tt.wantErr {
+			if err := c.updateAttributesForPrediction(tt.args.id, tt.args.prediction, tt.args.accurracyScore, tt.args.finalizedByTfa); (err != nil) != tt.wantErr {
 				t.Errorf("RPConnector.updateAttributesForPrediction() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -55,8 +55,8 @@ func TestRPConnector_updateAttributesForPrediction(t *testing.T) {
 
 func Test_getExistingDefectTypeLocatorID(t *testing.T) {
 	type args struct {
-		gjson_obj   []gjson.Result
-		defect_type string
+		gjsonObj   []gjson.Result
+		defectType string
 	}
 	tests := []struct {
 		name  string
@@ -68,7 +68,7 @@ func Test_getExistingDefectTypeLocatorID(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1 := getExistingDefectTypeLocatorID(tt.args.gjson_obj, tt.args.defect_type)
+			got, got1 := getExistingDefectTypeLocatorID(tt.args.gjsonObj, tt.args.defectType)
 			if got != tt.want {
 				t.Errorf("getExistingDefectTypeLocatorID() got = %v, want %v", got, tt.want)
 			}
@@ -456,7 +456,7 @@ func TestRPConnector_UpdateAll(t *testing.T) {
 // 	type args struct {
 // 		ids            []string
 // 		concurrent     bool
-// 		add_attributes bool
+// 		addAttributes bool
 // 	}
 // 	tests := []struct {
 // 		name   string
@@ -477,7 +477,7 @@ func TestRPConnector_UpdateAll(t *testing.T) {
 // 				Client:      tt.fields.Client,
 // 				TFAURL:      tt.fields.TFAURL,
 // 			}
-// 			if got := c.BuildUpdatedList(tt.args.ids, tt.args.concurrent, tt.args.add_attributes); !reflect.DeepEqual(got, tt.want) {
+// 			if got := c.BuildUpdatedList(tt.args.ids, tt.args.concurrent, tt.args.addAttributes); !reflect.DeepEqual(got, tt.want) {
 // 				t.Errorf("RPConnector.BuildUpdatedList() = %v, want %v", got, tt.want)
 // 			}
 // 		})
@@ -497,7 +497,7 @@ func TestRPConnector_UpdateAll(t *testing.T) {
 // 	type args struct {
 // 		ids            []string
 // 		concurrent     bool
-// 		add_attributes bool
+// 		addAttributes bool
 // 	}
 // 	tests := []struct {
 // 		name   string
@@ -518,7 +518,7 @@ func TestRPConnector_UpdateAll(t *testing.T) {
 // 				Client:      tt.fields.Client,
 // 				TFAURL:      tt.fields.TFAURL,
 // 			}
-// 			if got := c.BuildIssues(tt.args.ids, tt.args.concurrent, tt.args.add_attributes); !reflect.DeepEqual(got, tt.want) {
+// 			if got := c.BuildIssues(tt.args.ids, tt.args.concurrent, tt.args.addAttributes); !reflect.DeepEqual(got, tt.want) {
 // 				t.Errorf("RPConnector.BuildIssues() = %v, want %v", got, tt.want)
 // 			}
 // 		})
@@ -537,7 +537,7 @@ func TestRPConnector_UpdateAll(t *testing.T) {
 // 	}
 // 	type args struct {
 // 		ids            []string
-// 		add_attributes bool
+// 		addAttributes bool
 // 	}
 // 	tests := []struct {
 // 		name   string
@@ -558,7 +558,7 @@ func TestRPConnector_UpdateAll(t *testing.T) {
 // 				Client:      tt.fields.Client,
 // 				TFAURL:      tt.fields.TFAURL,
 // 			}
-// 			if got := c.BuildIssuesConcurrent(tt.args.ids, tt.args.add_attributes); !reflect.DeepEqual(got, tt.want) {
+// 			if got := c.BuildIssuesConcurrent(tt.args.ids, tt.args.addAttributes); !reflect.DeepEqual(got, tt.want) {
 // 				t.Errorf("RPConnector.BuildIssuesConcurrent() = %v, want %v", got, tt.want)
 // 			}
 // 		})
@@ -577,7 +577,7 @@ func TestRPConnector_UpdateAll(t *testing.T) {
 // 	}
 // 	type args struct {
 // 		id             string
-// 		add_attributes bool
+// 		addAttributes bool
 // 	}
 // 	tests := []struct {
 // 		name   string
@@ -598,7 +598,7 @@ func TestRPConnector_UpdateAll(t *testing.T) {
 // 				Client:      tt.fields.Client,
 // 				TFAURL:      tt.fields.TFAURL,
 // 			}
-// 			if got := c.BuildIssueItemHelper(tt.args.id, tt.args.add_attributes); !reflect.DeepEqual(got, tt.want) {
+// 			if got := c.BuildIssueItemHelper(tt.args.id, tt.args.addAttributes); !reflect.DeepEqual(got, tt.want) {
 // 				t.Errorf("RPConnector.BuildIssueItemHelper() = %v, want %v", got, tt.want)
 // 			}
 // 		})
@@ -619,7 +619,7 @@ func TestRPConnector_UpdateAll(t *testing.T) {
 // 		issuesChan     chan<- IssueItem
 // 		idsChan        <-chan string
 // 		exitChan       chan<- bool
-// 		add_attributes bool
+// 		addAttributes bool
 // 	}
 // 	tests := []struct {
 // 		name   string
@@ -639,7 +639,7 @@ func TestRPConnector_UpdateAll(t *testing.T) {
 // 				Client:      tt.fields.Client,
 // 				TFAURL:      tt.fields.TFAURL,
 // 			}
-// 			c.BuildIssueItemConcurrent(tt.args.issuesChan, tt.args.idsChan, tt.args.exitChan, tt.args.add_attributes)
+// 			c.BuildIssueItemConcurrent(tt.args.issuesChan, tt.args.idsChan, tt.args.exitChan, tt.args.addAttributes)
 // 		})
 // 	}
 // }
@@ -694,8 +694,8 @@ func TestRPConnector_GetPrediction(t *testing.T) {
 		TFAURL      string
 	}
 	type args struct {
-		id        string
-		tfa_input common.TFAInput
+		id       string
+		tfaInput common.TFAInput
 	}
 	tests := []struct {
 		name   string
@@ -716,7 +716,7 @@ func TestRPConnector_GetPrediction(t *testing.T) {
 				Client:      tt.fields.Client,
 				TFAURL:      tt.fields.TFAURL,
 			}
-			if got := c.GetPrediction(tt.args.id, tt.args.tfa_input); got != tt.want {
+			if got := c.GetPrediction(tt.args.id, tt.args.tfaInput); got != tt.want {
 				t.Errorf("RPConnector.GetPrediction() = %v, want %v", got, tt.want)
 			}
 		})
@@ -734,10 +734,10 @@ func TestRPConnector_BuildTFAInput(t *testing.T) {
 		TFAURL      string
 	}
 	type args struct {
-		test_id                     string
-		messages                    string
-		auto_finalize_defect_type   bool
-		auto_finalization_threshold float32
+		testID                    string
+		messages                  string
+		autoFinalizeDefectType    bool
+		autoFinalizationThreshold float32
 	}
 	tests := []struct {
 		name   string
@@ -758,7 +758,7 @@ func TestRPConnector_BuildTFAInput(t *testing.T) {
 				Client:      tt.fields.Client,
 				TFAURL:      tt.fields.TFAURL,
 			}
-			if got := c.BuildTFAInput(tt.args.test_id, tt.args.messages, tt.args.auto_finalize_defect_type, tt.args.auto_finalization_threshold); !reflect.DeepEqual(got, tt.want) {
+			if got := c.BuildTFAInput(tt.args.testID, tt.args.messages, tt.args.autoFinalizeDefectType, tt.args.autoFinalizationThreshold); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("RPConnector.BuildTFAInput() = %v, want %v", got, tt.want)
 			}
 		})
@@ -811,7 +811,7 @@ func TestRPConnector_BuildTFAInput(t *testing.T) {
 // 		TFAURL      string
 // 	}
 // 	type args struct {
-// 		test_id string
+// 		testID string
 // 	}
 // 	tests := []struct {
 // 		name   string
@@ -832,7 +832,7 @@ func TestRPConnector_BuildTFAInput(t *testing.T) {
 // 				Client:      tt.fields.Client,
 // 				TFAURL:      tt.fields.TFAURL,
 // 			}
-// 			if got := c.GetTestLog(tt.args.test_id); !reflect.DeepEqual(got, tt.want) {
+// 			if got := c.GetTestLog(tt.args.testID); !reflect.DeepEqual(got, tt.want) {
 // 				t.Errorf("RPConnector.GetTestLog() = %v, want %v", got, tt.want)
 // 			}
 // 		})
