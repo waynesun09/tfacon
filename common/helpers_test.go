@@ -61,12 +61,12 @@ func TestPrintHeader(t *testing.T) {
 
 func TestSendHTTPRequest(t *testing.T) {
 	type args struct {
-		ctx        context.Context
-		method     string
-		url        string
-		auth_token string
-		body       io.Reader
-		client     *http.Client
+		ctx       context.Context
+		method    string
+		url       string
+		authToken string
+		body      io.Reader
+		client    *http.Client
 	}
 	tests := []struct {
 		name    string
@@ -79,7 +79,7 @@ func TestSendHTTPRequest(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1, err := SendHTTPRequest(tt.args.ctx, tt.args.method, tt.args.url, tt.args.auth_token, tt.args.body, tt.args.client)
+			got, got1, err := SendHTTPRequest(tt.args.ctx, tt.args.method, tt.args.url, tt.args.authToken, tt.args.body, tt.args.client)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("SendHTTPRequest() error = %v, wantErr %v", err, tt.wantErr)
 				return

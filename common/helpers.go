@@ -50,11 +50,11 @@ func PrintHeader(version string) {
 // SendHTTPRequest is a helper function that
 // deals with all http operation for tfacon.
 func SendHTTPRequest(ctx context.Context, method, url,
-	auth_token string, body io.Reader, client *http.Client) ([]byte, bool, error) {
+	authToken string, body io.Reader, client *http.Client) ([]byte, bool, error) {
 	req, err := http.NewRequestWithContext(ctx, method, url, body)
 
-	if auth_token != "" {
-		req.Header.Add("Authorization", fmt.Sprintf("bearer %s", auth_token))
+	if authToken != "" {
+		req.Header.Add("Authorization", fmt.Sprintf("bearer %s", authToken))
 	}
 
 	if err != nil {
@@ -109,7 +109,7 @@ func httpHelper(method string, resp *http.Response) (bool, error) {
 		return true, err
 	}
 
-	err = fmt.Errorf("http handler request exception, status code is:%d, err is %w\n", resp.StatusCode, err)
+	err = fmt.Errorf("http handler request exception, status code is:%d, err is %w", resp.StatusCode, err)
 
 	return false, err
 }
@@ -133,6 +133,7 @@ func HandleError(err error, method string) {
 	}
 }
 
+// InitTFAConfigFile read the TFA config file for config
 func InitTFAConfigFile(viper *viper.Viper) {
 	var file []byte
 
