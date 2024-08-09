@@ -423,9 +423,7 @@ func processREReturnedText(reResult string) (string, error) {
 			finalText += fmt.Sprintf("|[%s](%s) | %s |\n", key, val[0], val[1])
 		}
 
-		seperatorLine := strings.Repeat("-", 34) + "\n"
-
-		reResult = seperatorLine + finalText + seperatorLine
+		reResult = finalText
 	}
 
 	return reResult, errRet
