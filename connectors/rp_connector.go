@@ -412,18 +412,18 @@ func processREReturnedText(reResult string) (string, error) {
 		var finalInfo = make(map[string][]string)
 		resultNumber := 1
 		for i := 0; i < len(finalStrings); i += 2 {
-			keyName := "Recommendation Engine Recommended Result " + strconv.Itoa(resultNumber)
+			keyName := "Result " + strconv.Itoa(resultNumber)
 			finalInfo[keyName] = []string{finalStrings[i], finalStrings[i+1]}
 			resultNumber++
 
 		}
-		finalText := "TFA-R[Similar_Results]\n"
+		finalText := "TFA-R Results\n"
 		for key, val := range finalInfo {
 			// [link1](http://foo.bar), O.5
 			finalText += fmt.Sprintf("[%s](%s) Similarity score: %s\n", key, val[0], val[1])
 		}
 
-		seperatorLine := strings.Repeat("=", 70) + "\n"
+		seperatorLine := strings.Repeat("-", 34) + "\n"
 
 		reResult = seperatorLine + finalText + seperatorLine
 	}
