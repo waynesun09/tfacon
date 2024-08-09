@@ -417,10 +417,10 @@ func processREReturnedText(reResult string) (string, error) {
 			resultNumber++
 
 		}
-		finalText := "TFA-R Results\n"
+		finalText := "| TFA-R | Similarity Score |\n|--|--|\n"
 		for key, val := range finalInfo {
 			// [link1](http://foo.bar), O.5
-			finalText += fmt.Sprintf("[%s](%s) Similarity score: %s\n", key, val[0], val[1])
+			finalText += fmt.Sprintf("|[%s](%s) | %s |\n", key, val[0], val[1])
 		}
 
 		seperatorLine := strings.Repeat("-", 34) + "\n"
