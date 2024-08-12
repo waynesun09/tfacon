@@ -180,7 +180,7 @@ Validation Passed!
 You can also add -v to have more detailed information for validation error
 #### init
 ```bash
-❯ tfacon init -h                                     
+❯ tfacon init -h
 init will create a sample workspace for tfacon
 
 Usage:
