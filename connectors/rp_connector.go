@@ -10,7 +10,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"reflect"
 	"strconv"
 	"strings"
 
@@ -174,15 +173,8 @@ func (c *RPConnector) validateRPURLAndAuthToken(verbose bool) (bool, error) {
 
 // String method is a to string method for the
 // RPConnector instance.
-func (c RPConnector) String() string {
-	v := reflect.ValueOf(c)
-	typeOfS := v.Type()
-	str := ""
-
-	for i := 0; i < v.NumField(); i++ {
-		str += fmt.Sprintf("%s: \t %v\n", typeOfS.Field(i).Name, v.Field(i).Interface())
-	}
-
+func (c *RPConnector) String() string {
+	str := common.StructToString(c)
 	return str
 }
 
@@ -221,29 +213,28 @@ func (c *RPConnector) UpdateAll(updatedListOfIssues common.GeneralUpdatedList, v
 
 // BuildUpdatedList method is a interface method for tfacon interface
 // it builds a list of issues, it returns GeneralUpdatedList.
-func (c *RPConnector) BuildUpdatedList(ids []string,
-	concurrent bool, addAttributes bool, re bool, autoFinalizeDefectType bool, autoFinalizationThreshold float32) common.GeneralUpdatedList {
-	return UpdatedList{IssuesList: c.BuildIssues(ids, concurrent, addAttributes, re, autoFinalizeDefectType, autoFinalizationThreshold)}
+func (c *RPConnector) BuildUpdatedList(ids []string, tfaConfig common.TFAConfig) common.GeneralUpdatedList {
+	return UpdatedList{IssuesList: c.BuildIssues(ids, tfaConfig)}
 }
 
 // BuildIssues method build the issue struct.
-func (c *RPConnector) BuildIssues(ids []string, concurrent bool, addAttributes bool, re bool, autoFinalizeDefectType bool, autoFinalizationThreshold float32) Issues {
+func (c *RPConnector) BuildIssues(ids []string, tfaConfig common.TFAConfig) Issues {
 	issues := Issues{}
 
-	if concurrent {
-		return c.BuildIssuesConcurrent(ids, addAttributes, re, autoFinalizeDefectType, autoFinalizationThreshold)
+	if tfaConfig.Concurrent {
+		return c.BuildIssuesConcurrent(ids, tfaConfig)
 	}
 
 	for _, id := range ids {
 		log.Printf("Getting prediction of test item(id): %s\n", id)
-		issues = append(issues, c.BuildIssueItemHelper(id, addAttributes, re, autoFinalizeDefectType, autoFinalizationThreshold))
+		issues = append(issues, c.BuildIssueItemHelper(id, tfaConfig))
 	}
 
 	return issues
 }
 
 // BuildIssuesConcurrent methods builds the issues struct concurrently.
-func (c *RPConnector) BuildIssuesConcurrent(ids []string, addAttributes bool, re bool, autoFinalizeDefectType bool, autoFinalizationThreshold float32) Issues {
+func (c *RPConnector) BuildIssuesConcurrent(ids []string, tfaConfig common.TFAConfig) Issues {
 	issues := Issues{}
 	issuesChan := make(chan IssueItem, len(ids))
 	idsChan := make(chan string, len(ids))
@@ -259,7 +250,7 @@ func (c *RPConnector) BuildIssuesConcurrent(ids []string, addAttributes bool, re
 
 	// here we should open cpu number of goroutines, but we know, the number of ids will not exceed 10000, so we are good
 	for i := 0; i < len(ids); i++ {
-		go c.BuildIssueItemConcurrent(issuesChan, idsChan, exitChan, addAttributes, re, autoFinalizeDefectType, autoFinalizationThreshold)
+		go c.BuildIssueItemConcurrent(issuesChan, idsChan, exitChan, tfaConfig)
 	}
 
 	for i := 0; i < len(ids); i++ {
@@ -276,14 +267,14 @@ func (c *RPConnector) BuildIssuesConcurrent(ids []string, addAttributes bool, re
 
 // BuildIssueItemHelper method is a helper method for building
 // the issue item struct.
-func (c *RPConnector) BuildIssueItemHelper(id string, addAttributes bool, re bool, autoFinalizeDefectType bool, autoFinalizationThreshold float32) IssueItem {
+func (c *RPConnector) BuildIssueItemHelper(id string, tfaConfig common.TFAConfig) IssueItem {
 	logs := c.GetTestLog(id)
 	// Make logs to string(in []byte format)
 	logAfterMarshal, _ := json.Marshal(logs)
 	// This can be the input of GetPrediction
 	testlog := string(logAfterMarshal)
 
-	var tfaInput common.TFAInput = c.BuildTFAInput(id, testlog, autoFinalizeDefectType, autoFinalizationThreshold)
+	var tfaInput common.TFAInput = c.BuildTFAInput(id, testlog, tfaConfig.AutoFinalizeDefectType, tfaConfig.AutoFinalizationThreshold)
 	predictionJSON := c.GetPrediction(id, tfaInput)
 	prediction := gjson.Get(predictionJSON, "result.prediction").String()
 	finalizedByTfa := gjson.Get(predictionJSON, "result.finalize").Bool()
@@ -291,9 +282,8 @@ func (c *RPConnector) BuildIssueItemHelper(id string, addAttributes bool, re boo
 	accuracyScore := gjson.Get(predictionJSON, "result.probability_score").String()
 	var issueItem = IssueItem{Issue: issueInfo, TestItemID: id}
 	if finalizedByTfa {
-		if common.TFA_DEFECT_TYPE_TO_SUB_TYPE[prediction] != nil {
-
-			predictionCode := common.TFA_DEFECT_TYPE[prediction]["locator"]
+		if common.TFADefectTypeToSubType[prediction] != nil {
+			predictionCode := common.TFADefectType[prediction]["locator"]
 			issueInfo.IssueType = predictionCode
 			log.Printf("Finalizer prediction code is: %s\n", predictionCode)
 		} else {
@@ -301,7 +291,7 @@ func (c *RPConnector) BuildIssueItemHelper(id string, addAttributes bool, re boo
 		}
 
 		// Update the comment with re result
-		if re {
+		if tfaConfig.Re {
 			if issueInfo.Comment != "" {
 				issueInfo.Comment += "\n"
 				issueInfo.Comment += c.GetREResult(id)
@@ -309,8 +299,8 @@ func (c *RPConnector) BuildIssueItemHelper(id string, addAttributes bool, re boo
 				issueInfo.Comment += c.GetREResult(id)
 			}
 		}
-		if addAttributes {
-			predictionName := common.TFA_DEFECT_TYPE[prediction]["longName"]
+		if tfaConfig.AddAttributes {
+			predictionName := common.TFADefectType[prediction]["longName"]
 			err := c.updateAttributesForPrediction(id, predictionName, accuracyScore, true)
 			common.HandleError(err, "nopanic")
 		}
@@ -319,9 +309,9 @@ func (c *RPConnector) BuildIssueItemHelper(id string, addAttributes bool, re boo
 
 	} else {
 		// Added a default defect type
-		if common.TFA_DEFECT_TYPE_TO_SUB_TYPE[prediction] != nil {
+		if common.TFADefectTypeToSubType[prediction] != nil {
 
-			predictionCode := common.TFA_DEFECT_TYPE_TO_SUB_TYPE[prediction]["locator"]
+			predictionCode := common.TFADefectTypeToSubType[prediction]["locator"]
 			// fmt.Println(predictionCode)
 			issueInfo.IssueType = predictionCode
 		} else {
@@ -329,7 +319,7 @@ func (c *RPConnector) BuildIssueItemHelper(id string, addAttributes bool, re boo
 		}
 
 		// Update the comment with re result
-		if re {
+		if tfaConfig.Re {
 			if issueInfo.Comment != "" {
 				issueInfo.Comment += "\n"
 				issueInfo.Comment += c.GetREResult(id)
@@ -340,8 +330,8 @@ func (c *RPConnector) BuildIssueItemHelper(id string, addAttributes bool, re boo
 
 		issueItem = IssueItem{Issue: issueInfo, TestItemID: id}
 
-		if addAttributes {
-			predictionName := common.TFA_DEFECT_TYPE_TO_SUB_TYPE[prediction]["longName"]
+		if tfaConfig.AddAttributes {
+			predictionName := common.TFADefectTypeToSubType[prediction]["longName"]
 			err := c.updateAttributesForPrediction(id, predictionName, accuracyScore, false)
 			common.HandleError(err, "nopanic")
 		}
@@ -432,7 +422,7 @@ func processREReturnedText(reResult string) (string, error) {
 
 // BuildIssueItemConcurrent method builds Issue Item Concurrently.
 func (c *RPConnector) BuildIssueItemConcurrent(issuesChan chan<- IssueItem, idsChan <-chan string, exitChan chan<- bool,
-	addAttributes bool, re bool, autoFinalizeDefectType bool, autoFinalizationThreshold float32) {
+	tfaConfig common.TFAConfig) {
 	for {
 		id, ok := <-idsChan
 		if !ok {
@@ -440,7 +430,7 @@ func (c *RPConnector) BuildIssueItemConcurrent(issuesChan chan<- IssueItem, idsC
 		}
 
 		log.Printf("Getting prediction of test item(id): %s\n", id)
-		issuesChan <- c.BuildIssueItemHelper(id, addAttributes, re, autoFinalizeDefectType, autoFinalizationThreshold)
+		issuesChan <- c.BuildIssueItemHelper(id, tfaConfig)
 
 	}
 	exitChan <- true
@@ -685,7 +675,7 @@ func (c *RPConnector) InitConnector() {
 
 	tiSub := gjson.Get(string(data), "subTypes.TO_INVESTIGATE").Array()
 
-	for _, subType := range common.PREDICTED_SUB_TYPES {
+	for _, subType := range common.PredictedSubTypes {
 		locator, ok := getExistingDefectTypeLocatorID(tiSub, subType["longName"])
 		if !ok {
 			d, _ := json.Marshal(subType)

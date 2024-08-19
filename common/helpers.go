@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"reflect"
 	"runtime"
 
 	"github.com/fatih/color"
@@ -19,6 +20,21 @@ import (
 // prints str in green to terminal.
 func PrintGreen(str string) {
 	color.Green(str)
+}
+
+// StructToString converts any struct to a string
+func StructToString(i interface{}) string {
+	var result string
+	v := reflect.ValueOf(i)
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Field(i)
+		fieldName := v.Type().Field(i).Name
+		result += fmt.Sprintf("%s: \t %v\n", fieldName, field.Interface())
+	}
+	return result
 }
 
 // FileExist is a helper function that
