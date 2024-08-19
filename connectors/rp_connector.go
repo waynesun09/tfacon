@@ -195,7 +195,7 @@ func (c *RPConnector) UpdateAll(updatedListOfIssues common.GeneralUpdatedList, v
 
 	jsonUpdatedListOfIssues, _ := json.Marshal(updatedListOfIssues)
 
-	log.Println("Updating All Test Items With Predictions...")
+	log.Println("Updating All Test Items With Predictions")
 
 	url := fmt.Sprintf("%s/api/v1/%s/item", c.RPURL, c.ProjectName)
 	method := "PUT"
@@ -295,8 +295,9 @@ func (c *RPConnector) BuildIssueItemHelper(id string, addAttributes bool, re boo
 
 			predictionCode := common.TFA_DEFECT_TYPE[prediction]["locator"]
 			issueInfo.IssueType = predictionCode
+			log.Printf("Finalizer prediction code is: %s\n", predictionCode)
 		} else {
-			log.Print("The predictions were not extracted correctly, so no update will be made!")
+			log.Println("The predictions were not extracted correctly, so no finalizer update will be made!")
 		}
 
 		// Update the comment with re result
@@ -324,7 +325,7 @@ func (c *RPConnector) BuildIssueItemHelper(id string, addAttributes bool, re boo
 			// fmt.Println(predictionCode)
 			issueInfo.IssueType = predictionCode
 		} else {
-			log.Print("The predictions were not extracted correctly, so no update will be made!")
+			log.Println("The predictions were not extracted correctly, so no update will be made!")
 		}
 
 		// Update the comment with re result
@@ -649,7 +650,7 @@ func (c *RPConnector) updateAttributesForPrediction(id, prediction, accuracyScor
 		err = fmt.Errorf("updated attibute failed:%w", err)
 	}
 
-	log.Printf("Updated the test item(id): %s with it's prediction %s\n", id, prediction)
+	log.Printf("Updated the test item(id): %s attributes with it's prediction %s\n", id, prediction)
 
 	return err
 }
