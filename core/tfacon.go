@@ -16,7 +16,7 @@ import (
 type TFACon interface {
 	GetAllTestInfos(issueType string, pageSize int) map[string]string
 	GetAllTestIds() []string
-	BuildUpdatedList(ids []string, concurrent bool, addAttributes bool, re bool, autoFinalizeDefectType bool, autoFinalizationThreshold float32) common.GeneralUpdatedList
+	BuildUpdatedList(ids []string, tfaConfig common.TFAConfig) common.GeneralUpdatedList
 	UpdateAll(common.GeneralUpdatedList, bool)
 	String() string
 	InitConnector()
@@ -58,10 +58,19 @@ func runHelper(viperConfig *viper.Viper, ids []string, con TFACon, operation str
 
 	var updatedListOfIssues common.GeneralUpdatedList
 
+	tfaConfig := common.TFAConfig{
+		Concurrent:                viperConfig.GetBool("config.concurrency"),
+		AddAttributes:             viperConfig.GetBool("config.add_attributes"),
+		Re:                        viperConfig.GetBool("config.re"),
+		AutoFinalizeDefectType:    viperConfig.GetBool("config.auto_finalize_defect_type"),
+		AutoFinalizationThreshold: float32(viperConfig.GetFloat64("config.auto_finalization_threshold")),
+		RetryTimes:                viperConfig.GetInt("config.retry_times"),
+		Verbose:                   viperConfig.GetBool("config.verbose"),
+	}
+
 	switch operation {
 	case "run":
-		updatedListOfIssues = con.BuildUpdatedList(ids, viperConfig.GetBool("config.concurrency"),
-			viperConfig.GetBool("config.add_attributes"), viperConfig.GetBool("config.re"), viperConfig.GetBool("config.auto_finalize_defect_type"), float32(viperConfig.GetFloat64("config.auto_finalization_threshold")))
+		updatedListOfIssues = con.BuildUpdatedList(ids, tfaConfig)
 	case "revert":
 		updatedListOfIssues = con.RevertUpdatedList(viperConfig.GetBool("config.verbose"))
 	default:
